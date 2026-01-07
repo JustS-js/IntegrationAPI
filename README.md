@@ -1,9 +1,11 @@
-# Fabric Example Mod
+# Integration API
+
+Library and API to manage abstract integrations via observer patterns and callbacks
 
 ## Setup
 
-For setup instructions please see the [fabric documentation page](https://docs.fabricmc.net/develop/getting-started/setting-up) that relates to the IDE that you are using.
+For setup instructions please see the [wiki](https://github.com/JustS-js/IntegrationAPI/wiki).
 
 ## License
 
-This template is available under the CC0 license. Feel free to learn from it and incorporate it in your own projects.
+This project is available under the MIT license. Feel free to learn from it and incorporate it in your own projects.
