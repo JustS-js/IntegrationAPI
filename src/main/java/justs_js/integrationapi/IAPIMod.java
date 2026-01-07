@@ -1,0 +1,16 @@
+package justs_js.integrationapi;
+
+import net.fabricmc.api.ModInitializer;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class IAPIMod implements ModInitializer {
+	public static final String MOD_ID = "integrationapi";
+	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+
+	@Override
+	public void onInitialize() {
+		LOGGER.info("Integration API loaded.");
+	}
+}
