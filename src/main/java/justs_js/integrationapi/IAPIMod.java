@@ -1,7 +1,7 @@
 package justs_js.integrationapi;
 
 import justs_js.integrationapi.api.ApiConfig;
-import justs_js.integrationapi.impl.twitch.eventsub.TwitchEventType;
+import justs_js.integrationapi.impl.twitch.eventsub.TwitchEventTypes;
 import justs_js.integrationapi.impl.twitch.eventsub.TwitchIntegrationImpl;
 import justs_js.integrationapi.impl.twitch.eventsub.event.TwitchChatMessageEvent;
 import justs_js.integrationapi.impl.twitch.eventsub.event.TwitchIntegrationRefreshTokenEvent;
@@ -21,11 +21,11 @@ public class IAPIMod implements ModInitializer {
 		LOGGER.info("Integration API loaded.");
 
 		// 1. Create Integration instance with ApiConfig
-		ApiConfig.Builder<TwitchEventType> configBuilder = new ApiConfig.Builder<>();
+		ApiConfig.Builder configBuilder = new ApiConfig.Builder();
 		twitch = new TwitchIntegrationImpl(
 				configBuilder
-						.enableEvent(TwitchEventType.INTEGRATION_REFRESH_TOKEN)
-						.enableEvent(TwitchEventType.CHANNEL_CHAT_MESSAGE)
+						.enableEvent(TwitchEventTypes.INTEGRATION_REFRESH_TOKEN)
+						.enableEvent(TwitchEventTypes.CHANNEL_CHAT_MESSAGE)
 						.withApiName("Twitch-API")
 						.withAuthParam("channel", "JustS-js")
 						.withApiParam("foo", "bar")
@@ -33,7 +33,7 @@ public class IAPIMod implements ModInitializer {
 		);
 		// 2. Subscribe to relevant events with your custom callbacks
 		twitch.subscribe(
-				TwitchEventType.CHANNEL_CHAT_MESSAGE,
+				TwitchEventTypes.CHANNEL_CHAT_MESSAGE,
 				event -> LOGGER.info(
 						"[{}]: {}",
 						((TwitchChatMessageEvent) event).getChatterUserName(),
@@ -41,7 +41,7 @@ public class IAPIMod implements ModInitializer {
 				)
 		);
 		twitch.subscribe(
-				TwitchEventType.INTEGRATION_REFRESH_TOKEN,
+				TwitchEventTypes.INTEGRATION_REFRESH_TOKEN,
 				event -> LOGGER.info(
 						"Tokens were refreshed! access_token: {} ; refresh_token: {}",
 						((TwitchIntegrationRefreshTokenEvent) event).getAccessToken(),

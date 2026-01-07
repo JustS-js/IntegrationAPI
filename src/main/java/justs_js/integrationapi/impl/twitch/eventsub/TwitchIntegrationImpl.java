@@ -22,9 +22,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.UUID;
 
-public class TwitchIntegrationImpl extends ApiIntegration<TwitchEvent, TwitchEventType> {
-    public TwitchIntegrationImpl(ApiConfig<TwitchEventType> config) {
-        super(config, TwitchEventType.class);
+public class TwitchIntegrationImpl extends ApiIntegration<TwitchEvent> {
+    public TwitchIntegrationImpl(ApiConfig config) {
+        super(config, TwitchEventTypes.getRegistered());
 
         this.clientId = config.getAuthParams().get("clientId");
         this.clientSecret = config.getAuthParams().get("clientSecret");
@@ -109,7 +109,6 @@ public class TwitchIntegrationImpl extends ApiIntegration<TwitchEvent, TwitchEve
             new TwitchIntegrationRefreshTokenEvent(
                 UUID.randomUUID().toString(),
                 getConfig().getApiName(),
-                TwitchEventType.INTEGRATION_REFRESH_TOKEN,
                 jsonResponse
             )
         );
@@ -140,23 +139,16 @@ public class TwitchIntegrationImpl extends ApiIntegration<TwitchEvent, TwitchEve
         JsonObject event = payload.getAsJsonObject("event");
 
         String type = subscription.get("type").getAsString();
-        String typeEnumName = type
-                .replace('.', '_')
-                .toUpperCase();
-        TwitchEventType eventType = TwitchEventType.valueOf(typeEnumName);
-
-        Class<? extends TwitchEvent> eventClass = TwitchEventTypes.get(eventType);
+        Class<? extends TwitchEvent> eventClass = TwitchEventTypes.get(type);
         try {
             Constructor<? extends TwitchEvent> eventConstructor = eventClass.getDeclaredConstructor(
                     String.class,
                     String.class,
-                    TwitchEventType.class,
                     Object.class
             );
             eventConstructor.newInstance(
                     event.get("id").getAsString(),
                     getConfig().getApiName(),
-                    eventType,
                     event
             );
         } catch (InvocationTargetException | IllegalAccessException | InstantiationException | NoSuchMethodException e) {

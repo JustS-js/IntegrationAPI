@@ -7,15 +7,15 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-public class ApiConfig<T extends EventType> {
+public class ApiConfig {
     private final String apiName;
     private final Map<String, String> authParams;
     private final Map<String, String> apiParams;
-    private final List<T> enabledEvents;
+    private final List<Class<? extends ApiEvent>> enabledEvents;
     private final ErrorHandler errorHandler;
     private static final Logger LOGGER = LoggerFactory.getLogger(IAPIMod.MOD_ID);
 
-    private ApiConfig(Builder<T> builder) {
+    private ApiConfig(Builder builder) {
         this.apiName = builder.apiName;
         this.authParams = Collections.unmodifiableMap(builder.authParams);
         this.apiParams = Collections.unmodifiableMap(builder.apiParams);
@@ -23,40 +23,40 @@ public class ApiConfig<T extends EventType> {
         this.errorHandler = builder.errorHandler;
     }
 
-    public static class Builder<T extends EventType> {
+    public static class Builder {
         private String apiName = "Anonymous API";
         private final Map<String, String> authParams = new HashMap<>();
         private final Map<String, String> apiParams = new HashMap<>();
-        private final List<T> enabledEvents = new ArrayList<>();
+        private final List<Class<? extends ApiEvent>> enabledEvents = new ArrayList<>();
         private ErrorHandler errorHandler = (error, context) -> LOGGER.error(error.getMessage());
 
-        public Builder<T> withApiName(@NotNull String apiName) {
+        public Builder withApiName(@NotNull String apiName) {
             this.apiName = apiName;
             return this;
         }
 
-        public Builder<T> withAuthParam(String key, String value) {
+        public Builder withAuthParam(String key, String value) {
             this.authParams.put(key, value);
             return this;
         }
 
-        public Builder<T> withApiParam(String key, String value) {
+        public Builder withApiParam(String key, String value) {
             this.apiParams.put(key, value);
             return this;
         }
 
-        public Builder<T> enableEvent(T eventType) {
+        public Builder enableEvent(Class<? extends ApiEvent> eventType) {
             this.enabledEvents.add(eventType);
             return this;
         }
 
-        public Builder<T> withErrorHandler(ErrorHandler errorHandler) {
+        public Builder withErrorHandler(ErrorHandler errorHandler) {
             this.errorHandler = errorHandler;
             return this;
         }
 
-        public ApiConfig<T> build() {
-            return new ApiConfig<>(this);
+        public ApiConfig build() {
+            return new ApiConfig(this);
         }
     }
 
@@ -80,11 +80,11 @@ public class ApiConfig<T extends EventType> {
         return apiParams.get(key);
     }
 
-    public boolean isEventEnabled(T eventType) {
+    public boolean isEventEnabled(Class<? extends ApiEvent> eventType) {
         return enabledEvents.contains(eventType);
     }
 
-    public List<T> getEnabledEvents() {
+    public List<Class<? extends ApiEvent>> getEnabledEvents() {
         return enabledEvents;
     }
 

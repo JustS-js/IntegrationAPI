@@ -2,7 +2,6 @@ package justs_js.integrationapi.impl.twitch.eventsub.event;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import justs_js.integrationapi.impl.twitch.eventsub.TwitchEventType;
 
 public class TwitchChatMessageEvent extends TwitchEvent {
     private final String broadcasterUserId;
@@ -16,8 +15,8 @@ public class TwitchChatMessageEvent extends TwitchEvent {
     private final String color;
     private final JsonArray badges;
 
-    public TwitchChatMessageEvent(String eventId, String apiName, TwitchEventType type, JsonObject rawData) {
-        super(eventId, apiName, TwitchEventType.CHANNEL_CHAT_MESSAGE, rawData);
+    public TwitchChatMessageEvent(String eventId, String apiName, JsonObject rawData) {
+        super(eventId, apiName, rawData);
         this.broadcasterUserId = rawData.get("broadcaster_user_id").getAsString();
         this.broadcasterUserLogin = rawData.get("broadcaster_user_login").getAsString();
         this.broadcasterUserName = rawData.get("broadcaster_user_name").getAsString();
