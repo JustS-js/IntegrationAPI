@@ -4,6 +4,7 @@ import justs_js.integrationapi.IAPIMod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,7 +16,7 @@ public abstract class ApiIntegration<E extends ApiEvent<T>, T extends Enum<T> & 
     private static final Logger LOGGER = LoggerFactory.getLogger(IAPIMod.MOD_ID);
     protected final Class<T> eventTypeClass;
 
-    private final ApiConfig config;
+    private final ApiConfig<T> config;
     private final ApiContext context;
     private final Map<T, List<EventCallback<E>>> callbacks;
     private final ExecutorService callbackExecutor;
@@ -23,7 +24,7 @@ public abstract class ApiIntegration<E extends ApiEvent<T>, T extends Enum<T> & 
     private volatile boolean isRunning = false;
     private final Object lifecycleLock = new Object();
 
-    protected ApiIntegration(ApiConfig config, Class<T> eventTypeClass) {
+    protected ApiIntegration(ApiConfig<T> config, Class<T> eventTypeClass) {
         this.eventTypeClass = eventTypeClass;
         this.config = config;
         this.context = new ApiContext(config.getAuthParams());
@@ -92,6 +93,28 @@ public abstract class ApiIntegration<E extends ApiEvent<T>, T extends Enum<T> & 
         }
     }
 
+    public boolean isEventEnabled(T eventType) {
+        return getConfig().isEventEnabled(eventType);
+    }
+
+    protected void publishEvent(E event) {
+        if (!isRunning) return;
+
+        callbacks.getOrDefault(event.getType(), Collections.emptyList())
+                .forEach(callback -> invokeCallback(callback, event));
+    }
+
+    private void invokeCallback(EventCallback<E> callback, E event) {
+        callbackExecutor.submit(() -> {
+            try {
+                callback.onEvent(event);
+            } catch (Exception e) {
+                handleError(e);
+            }
+        });
+    }
+
+
     protected void handleError(Throwable error) {
         if (config.getErrorHandler() != null) {
             config.getErrorHandler().onError(error, context);
@@ -104,6 +127,6 @@ public abstract class ApiIntegration<E extends ApiEvent<T>, T extends Enum<T> & 
     protected abstract void onShutdown() throws Exception;
 
     public boolean isRunning() { return isRunning; }
-    protected ApiConfig getConfig() { return config; }
+    protected ApiConfig<T> getConfig() { return config; }
     protected ApiContext getContext() { return context; }
 }
