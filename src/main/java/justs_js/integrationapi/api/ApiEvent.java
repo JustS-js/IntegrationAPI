@@ -22,7 +22,4 @@ public abstract class ApiEvent<T extends Enum<T> & EventType> {
     public Date getTimestamp() { return timestamp; }
     public Object getRawData() { return rawData; }
     public T getType() { return type; }
-
-    @Override
-    public abstract String toString();
 }

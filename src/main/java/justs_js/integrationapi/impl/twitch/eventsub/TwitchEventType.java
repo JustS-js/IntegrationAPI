@@ -7,6 +7,7 @@ import justs_js.integrationapi.api.EventType;
  * <a href="https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/">here</a>
  * */
 public enum TwitchEventType implements EventType {
+    INTEGRATION_REFRESH_TOKEN,
     AUTOMOD_MESSAGE_HOLD,
     AUTOMOD_MESSAGE_UPDATE,
     AUTOMOD_SETTINGS_UPDATE,

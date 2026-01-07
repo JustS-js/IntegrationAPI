@@ -13,7 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public abstract class ApiIntegration<E extends ApiEvent<T>, T extends Enum<T> & EventType> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(IAPIMod.MOD_ID);
+    protected static final Logger LOGGER = LoggerFactory.getLogger(IAPIMod.MOD_ID);
     protected final Class<T> eventTypeClass;
 
     private final ApiConfig<T> config;

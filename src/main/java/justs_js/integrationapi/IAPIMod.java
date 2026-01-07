@@ -4,6 +4,7 @@ import justs_js.integrationapi.api.ApiConfig;
 import justs_js.integrationapi.impl.twitch.eventsub.TwitchEventType;
 import justs_js.integrationapi.impl.twitch.eventsub.TwitchIntegrationImpl;
 import justs_js.integrationapi.impl.twitch.eventsub.event.TwitchChatMessageEvent;
+import justs_js.integrationapi.impl.twitch.eventsub.event.TwitchIntegrationRefreshTokenEvent;
 import net.fabricmc.api.ModInitializer;
 
 import org.slf4j.Logger;
@@ -23,6 +24,7 @@ public class IAPIMod implements ModInitializer {
 		ApiConfig.Builder<TwitchEventType> configBuilder = new ApiConfig.Builder<>();
 		twitch = new TwitchIntegrationImpl(
 				configBuilder
+						.enableEvent(TwitchEventType.INTEGRATION_REFRESH_TOKEN)
 						.enableEvent(TwitchEventType.CHANNEL_CHAT_MESSAGE)
 						.withApiName("Twitch-API")
 						.withAuthParam("channel", "JustS-js")
@@ -34,11 +36,25 @@ public class IAPIMod implements ModInitializer {
 				TwitchEventType.CHANNEL_CHAT_MESSAGE,
 				event -> LOGGER.info(
 						"[{}]: {}",
-						((TwitchChatMessageEvent) event).getAuthor(),
-						((TwitchChatMessageEvent) event).getMessage()
+						((TwitchChatMessageEvent) event).getChatterUserName(),
+						((TwitchChatMessageEvent) event).getMessageText()
+				)
+		);
+		twitch.subscribe(
+				TwitchEventType.INTEGRATION_REFRESH_TOKEN,
+				event -> LOGGER.info(
+						"Tokens were refreshed! access_token: {} ; refresh_token: {}",
+						((TwitchIntegrationRefreshTokenEvent) event).getAccessToken(),
+						((TwitchIntegrationRefreshTokenEvent) event).getRefreshToken()
 				)
 		);
 		// 3. Start the Integration instance
-		twitch.start();
+		boolean success = twitch.start();
+		if (success) {
+			LOGGER.info("Started twitch integration successfully!");
+		} else {
+			LOGGER.warn("Could not start twitch integration!");
+			// might want to fix something and restart it...
+		}
 	}
 }
