@@ -79,9 +79,13 @@ shadowJar {
 	configurations = [project.configurations.shadowBundle]
 	archiveClassifier = 'dev-shadow'
 
-	// Relocate internal Styled chat for when Mod isn't present externally
 	relocate 'com.squareup.okhttp3', 'justs_js.integrationapi.shaded.okhttp3'
 	relocate 'org.java-websocket', 'justs_js.integrationapi.shaded.java-websocket'
+
+	exclude "**/*.kotlin_metadata"
+	exclude "**/*.kotlin_builtins"
+	exclude "kotlin/**"
+	exclude "org/jetbrains/kotlin/**"
 }
 
 remapJar {
