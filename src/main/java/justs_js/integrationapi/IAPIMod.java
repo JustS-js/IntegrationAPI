@@ -3,8 +3,7 @@ package justs_js.integrationapi;
 import justs_js.integrationapi.api.ApiConfig;
 import justs_js.integrationapi.impl.twitch.eventsub.TwitchEventTypes;
 import justs_js.integrationapi.impl.twitch.eventsub.TwitchIntegrationImpl;
-import justs_js.integrationapi.impl.twitch.eventsub.event.TwitchChatMessageEvent;
-import justs_js.integrationapi.impl.twitch.eventsub.event.TwitchIntegrationRefreshTokenEvent;
+import justs_js.integrationapi.impl.twitch.eventsub.event.*;
 import net.fabricmc.api.ModInitializer;
 
 import org.slf4j.Logger;
@@ -24,16 +23,21 @@ public class IAPIMod implements ModInitializer {
 		ApiConfig.Builder configBuilder = new ApiConfig.Builder();
 		twitch = new TwitchIntegrationImpl(
 				configBuilder
-						.enableEvent(TwitchEventTypes.INTEGRATION_REFRESH_TOKEN)
-						.enableEvent(TwitchEventTypes.CHANNEL_CHAT_MESSAGE)
+						.enableEvent(TwitchEventTypes.getInstance().INTEGRATION_REFRESH_TOKEN)
+						.enableEvent(TwitchEventTypes.getInstance().CHANNEL_CHAT_MESSAGE)
+						.enableEvent(TwitchEventTypes.getInstance().CHANNEL_CHANNEL_POINTS_CUSTOM_REWARD_REDEMPTION_ADD)
 						.withApiName("Twitch-API")
-						.withAuthParam("channel", "JustS-js")
-						.withApiParam("foo", "bar")
+						.withAuthParam("clientId", "your clientId")
+						.withAuthParam("clientSecret", "your clientSecret")
+						.withAuthParam("accessToken", "your accessToken")
+						.withAuthParam("refreshToken", "your refreshToken")
+						.withApiParam("channel.chat.message", "{\"broadcaster_user_id\": \"1337\", \"user_id\": \"1337\"}")
+						.withApiParam("channel.channel_points_custom_reward_redemption.add", "{\"broadcaster_user_id\": \"1337\"}")
 						.build()
 		);
 		// 2. Subscribe to relevant events with your custom callbacks
 		twitch.subscribe(
-				TwitchEventTypes.CHANNEL_CHAT_MESSAGE,
+				TwitchEventTypes.getInstance().CHANNEL_CHAT_MESSAGE,
 				event -> LOGGER.info(
 						"[{}]: {}",
 						((TwitchChatMessageEvent) event).getChatterUserName(),
@@ -41,11 +45,19 @@ public class IAPIMod implements ModInitializer {
 				)
 		);
 		twitch.subscribe(
-				TwitchEventTypes.INTEGRATION_REFRESH_TOKEN,
+				TwitchEventTypes.getInstance().INTEGRATION_REFRESH_TOKEN,
 				event -> LOGGER.info(
-						"Tokens were refreshed! access_token: {} ; refresh_token: {}",
+						"Tokens have been refreshed! access_token: {} ; refresh_token: {}",
 						((TwitchIntegrationRefreshTokenEvent) event).getAccessToken(),
 						((TwitchIntegrationRefreshTokenEvent) event).getRefreshToken()
+				)
+		);
+		twitch.subscribe(
+				TwitchEventTypes.getInstance().CHANNEL_CHANNEL_POINTS_CUSTOM_REWARD_REDEMPTION_ADD,
+				event -> LOGGER.info(
+						"Point Reward Redemption! {} requested {}",
+						((TwitchChannelPointsRewardRedemptionEventAdd) event).getUserName(),
+						((TwitchChannelPointsRewardRedemptionEventAdd) event).getRewardTitle()
 				)
 		);
 		// 3. Start the Integration instance

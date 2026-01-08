@@ -1,9 +1,6 @@
 package justs_js.integrationapi.impl.twitch.eventsub;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import justs_js.integrationapi.api.ApiConfig;
 import justs_js.integrationapi.api.ApiIntegration;
 import justs_js.integrationapi.api.exception.InvalidTokenException;
@@ -24,7 +21,7 @@ import java.util.UUID;
 
 public class TwitchIntegrationImpl extends ApiIntegration<TwitchEvent> {
     public TwitchIntegrationImpl(ApiConfig config) {
-        super(config, TwitchEventTypes.getRegistered());
+        super(config, TwitchEventTypes.getInstance().getRegisteredClasses());
 
         this.clientId = config.getAuthParams().get("clientId");
         this.clientSecret = config.getAuthParams().get("clientSecret");
@@ -37,7 +34,7 @@ public class TwitchIntegrationImpl extends ApiIntegration<TwitchEvent> {
     private String accessToken;
     private String refreshToken;
 
-    private String socket_url;
+    private String socket_url = "wss://eventsub.wss.twitch.tv/ws";
     private String sessionId;
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
@@ -46,28 +43,81 @@ public class TwitchIntegrationImpl extends ApiIntegration<TwitchEvent> {
 
     private static final String VALIDATE_TOKEN_URL = "https://id.twitch.tv/oauth2/validate";
     private static final String TOKEN_URL = "https://id.twitch.tv/oauth2/token";
+    private static final String EVENTSUB_URL = "https://api.twitch.tv/helix/eventsub/subscriptions";
 
     @Override
     protected void onInit() throws InvalidTokenException, IOException, InterruptedException {
-        if (isAccessTokenValid()) return;
-        refreshTokens();
-        if (isAccessTokenValid()) return;
-        throw new InvalidTokenException("Token pair is invalid");
+        if (!isAccessTokenValid()) {
+            refreshTokens();
+            if (!isAccessTokenValid()) {
+                throw new InvalidTokenException("Token pair is invalid");
+            }
+        }
+        webSocketClient = new TwitchWebSocketClient(URI.create(socket_url));
     }
 
     @Override
     protected void connect() throws Exception {
-
+        webSocketClient.connect();
     }
 
     @Override
     protected void disconnect() throws Exception {
-
+        webSocketClient.close();
     }
 
     @Override
     protected void onShutdown() throws Exception {
 
+    }
+
+    private void sendSubscriptionWebSocketMessage(String type) throws IOException, InterruptedException {
+        if (type.startsWith("integration")) {
+            return; // ignore integration's internal events
+        }
+
+        JsonObject subscription = new JsonObject();
+        subscription.addProperty("type", type);
+        subscription.addProperty("version", "1");
+
+        subscription.add(
+                "condition",
+                JsonParser.parseString(getConfig().getApiParams(type)).getAsJsonObject()
+        );
+
+        JsonObject transport = new JsonObject();
+        transport.addProperty("method", "websocket");
+        transport.addProperty("session_id", sessionId);
+        subscription.add("transport", transport);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(EVENTSUB_URL))
+                .header("Client-ID", clientId)
+                .header("Authorization", "Bearer " + accessToken)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(subscription)))
+                .build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 202) {
+            getConfig().getErrorHandler().onError(new Exception(response.body()), getContext());
+            if (response.statusCode() == 401) {
+                throw new InvalidTokenException("Invalid token for subscription");
+            }
+            return;
+        }
+        JsonObject responseJson = JsonParser.parseString(response.body()).getAsJsonObject();
+        JsonArray data = responseJson.getAsJsonArray("data");
+
+        if (data == null || data.isEmpty()) {
+            getConfig().getErrorHandler().onError(new Exception("Data empty for " + type + " sub"), getContext());
+            return;
+        }
+        JsonObject transportInfo = data.get(0).getAsJsonObject().getAsJsonObject("transport");
+        String sessionIdFromSub = transportInfo.get("session_id").getAsString();
+        if (!sessionIdFromSub.equals(sessionId)) {
+            getConfig().getErrorHandler().onError(new Exception("Wrong session_id for " + type + " sub"), getContext());
+        }
     }
 
     private boolean isAccessTokenValid() throws IOException, InterruptedException {
@@ -118,6 +168,15 @@ public class TwitchIntegrationImpl extends ApiIntegration<TwitchEvent> {
         JsonObject payload = message.getAsJsonObject("payload");
         JsonObject session = payload.getAsJsonObject("session");
         sessionId = session.get("id").getAsString();
+        getContext().setSessionData("session_id", sessionId);
+
+        for (String eventType : TwitchEventTypes.getInstance().getRegisteredTypes()) {
+            try {
+                sendSubscriptionWebSocketMessage(eventType);
+            } catch (IOException | InterruptedException e) {
+                getConfig().getErrorHandler().onError(e, getContext());
+            }
+        }
     }
 
     private void handleReconnectWebsocketMessage(JsonObject message) throws Exception {
@@ -130,6 +189,8 @@ public class TwitchIntegrationImpl extends ApiIntegration<TwitchEvent> {
         }
 
         socket_url = newUrl;
+        sessionId = session.get("id").getAsString();
+        webSocketClient = new TwitchWebSocketClient(URI.create(socket_url));
         connect();
     }
 
@@ -139,18 +200,24 @@ public class TwitchIntegrationImpl extends ApiIntegration<TwitchEvent> {
         JsonObject event = payload.getAsJsonObject("event");
 
         String type = subscription.get("type").getAsString();
-        Class<? extends TwitchEvent> eventClass = TwitchEventTypes.get(type);
+        Class<? extends TwitchEvent> eventClass = TwitchEventTypes.getInstance().get(type);
+        if (eventClass == null) {
+            // This event type was not registered
+            return;
+        }
+
         try {
             Constructor<? extends TwitchEvent> eventConstructor = eventClass.getDeclaredConstructor(
                     String.class,
                     String.class,
-                    Object.class
+                    JsonObject.class
             );
-            eventConstructor.newInstance(
-                    event.get("id").getAsString(),
+            TwitchEvent eventInstance = eventConstructor.newInstance(
+                    UUID.randomUUID().toString(),
                     getConfig().getApiName(),
                     event
             );
+            publishEvent(eventInstance);
         } catch (InvocationTargetException | IllegalAccessException | InstantiationException | NoSuchMethodException e) {
             getConfig().getErrorHandler().onError(e, getContext());
         }
@@ -164,7 +231,11 @@ public class TwitchIntegrationImpl extends ApiIntegration<TwitchEvent> {
         public void onOpen(ServerHandshake handshake) {}
 
         @Override
-        public void onClose(int code, String reason, boolean remote) {}
+        public void onClose(int code, String reason, boolean remote) {
+            if (!getContext().getSessionData("session_id").equals(sessionId)) {
+                connect();
+            }
+        }
 
         @Override
         public void onError(Exception ex) {
@@ -187,10 +258,10 @@ public class TwitchIntegrationImpl extends ApiIntegration<TwitchEvent> {
                     case "notification":
                         handleNotificationWebsocketMessage(message);
                         break;
-                    case "session_keepalive":
-                        break;
                     case "session_reconnect":
                         handleReconnectWebsocketMessage(message);
+                        break;
+                    default:
                         break;
                 }
 
