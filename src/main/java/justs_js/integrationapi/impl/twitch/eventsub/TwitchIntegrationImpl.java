@@ -80,9 +80,14 @@ public class TwitchIntegrationImpl extends ApiIntegration<TwitchEvent> {
         subscription.addProperty("type", type);
         subscription.addProperty("version", "1");
 
+        String condition = getConfig().getApiParams(type);
+        if (condition == null || condition.isEmpty()) {
+            getConfig().getErrorHandler().onError(new Exception("Invalid condition present for " + type), getContext());
+            return;
+        }
         subscription.add(
                 "condition",
-                JsonParser.parseString(getConfig().getApiParams(type)).getAsJsonObject()
+                JsonParser.parseString(condition).getAsJsonObject()
         );
 
         JsonObject transport = new JsonObject();
@@ -172,7 +177,9 @@ public class TwitchIntegrationImpl extends ApiIntegration<TwitchEvent> {
 
         for (String eventType : TwitchEventTypes.getInstance().getRegisteredTypes()) {
             try {
-                sendSubscriptionWebSocketMessage(eventType);
+                if (getConfig().isEventEnabled(TwitchEventTypes.getInstance().get(eventType))) {
+                    sendSubscriptionWebSocketMessage(eventType);
+                }
             } catch (IOException | InterruptedException e) {
                 getConfig().getErrorHandler().onError(e, getContext());
             }

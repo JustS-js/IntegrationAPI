@@ -1,17 +1,16 @@
 package justs_js.integrationapi.api;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public abstract class EventTypes<E> {
     private final Map<String, Class<? extends E>> typeToClassMap = new HashMap<>();
 
-    public Class<? extends E> register(@NotNull String type, @NotNull Class<? extends E> eventClass) {
+    public Class<? extends E> register(String type, Class<? extends E> eventClass) {
         typeToClassMap.put(type, eventClass);
         return eventClass;
     }
 
-    public Class<? extends E> get(@NotNull String type) {
+    public Class<? extends E> get(String type) {
         return typeToClassMap.get(type);
     }
 
