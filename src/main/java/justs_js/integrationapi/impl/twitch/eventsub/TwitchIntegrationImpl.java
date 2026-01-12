@@ -137,17 +137,16 @@ public class TwitchIntegrationImpl extends ApiIntegration<TwitchEvent> {
 
     private void refreshTokens() throws IOException, InterruptedException, InvalidTokenException {
         if (refreshToken == null || refreshToken.isEmpty()) throw new InvalidTokenException("Invalid refresh token");
-        UrlBuilder urlBuilder = new UrlBuilder(TOKEN_URL);
+        String requestBody = String.format(
+                "grant_type=refresh_token&client_id=%s&client_secret=%s&refresh_token=%s",
+                this.clientId,
+                this.clientSecret,
+                this.refreshToken
+        );
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(
-                        urlBuilder
-                                .withParam("grant_type", "refresh_token")
-                                .withParam("client_id", clientId)
-                                .withParam("client_secret", clientSecret)
-                                .withParam("refresh_token", refreshToken)
-                                .build()
-                ))
+                .uri(URI.create(TOKEN_URL))
                 .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                 .build();
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
