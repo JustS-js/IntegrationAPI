@@ -20,7 +20,7 @@ public abstract class ApiIntegration<E extends ApiEvent> {
     private final ApiConfig config;
     private final ApiContext context;
     private final Map<Class<? extends E>, List<EventCallback<E>>> callbacks;
-    private final ExecutorService callbackExecutor;
+    private ExecutorService callbackExecutor;
 
     private volatile boolean isRunning = false;
     private final Object lifecycleLock = new Object();
@@ -30,12 +30,6 @@ public abstract class ApiIntegration<E extends ApiEvent> {
         this.registeredEvents = registeredEvents;
         this.context = new ApiContext(config.getAuthParams());
         this.callbacks = new ConcurrentHashMap<>();
-        this.callbackExecutor = Executors.newCachedThreadPool(r -> {
-            Thread thread = new Thread(r);
-            thread.setName("api-callback-" + config.getApiName() + "-" + thread.getId());
-            thread.setDaemon(true);
-            return thread;
-        });
     }
 
     public void subscribe(EventCallback<E> listener) {
@@ -66,6 +60,13 @@ public abstract class ApiIntegration<E extends ApiEvent> {
             if (isRunning) return false;
 
             try {
+                this.callbackExecutor = Executors.newCachedThreadPool(r -> {
+                    Thread thread = new Thread(r);
+                    thread.setName("api-callback-" + config.getApiName() + "-" + thread.getId());
+                    thread.setDaemon(true);
+                    return thread;
+                });
+
                 onInit();
                 connect();
                 isRunning = true;
