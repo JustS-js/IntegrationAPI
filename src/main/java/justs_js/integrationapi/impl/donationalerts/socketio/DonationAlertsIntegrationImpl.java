@@ -59,13 +59,11 @@ public class DonationAlertsIntegrationImpl extends ApiIntegration<DonationAlerts
     @Override
     protected void connect() throws Exception {
         webSocketClient.connect();
-        LOGGER.info("connect()");
     }
 
     @Override
     protected void disconnect() throws Exception {
         webSocketClient.close();
-        LOGGER.info("disconnect()");
     }
 
     @Override
@@ -124,24 +122,18 @@ public class DonationAlertsIntegrationImpl extends ApiIntegration<DonationAlerts
         }
 
         private void onConnection(Object... objects) {
-            LOGGER.info("onConnection()");
             this.socket.emit("add-user", Map.of("token", token));
-            LOGGER.info("emitted()");
         }
 
         private void onReconnection(Object... objects) {
-            LOGGER.info("onReconnection()");
             this.socket.emit("add-user", Map.of("token", token));
-            LOGGER.info("emitted_r()");
         }
 
         private void onError(Object... objects) {
-            LOGGER.info("onError()");
             handleError((Exception)objects[0]);
         }
 
         private void onDonation(Object... objects) {
-            LOGGER.info("onDonation()");
             String jsonMessage = (String)objects[0];
             handleSocketMessage(JsonParser.parseString(jsonMessage).getAsJsonObject());
         }
