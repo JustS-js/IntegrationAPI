@@ -11,7 +11,7 @@ public class ApiConfig {
     private final String apiName;
     private final Map<String, String> authParams;
     private final Map<String, String> apiParams;
-    private final List<String> enabledEvents;
+    private final List<Class<? extends ApiEvent>> enabledEvents;
     private final ErrorHandler errorHandler;
     private static final Logger LOGGER = LoggerFactory.getLogger(IAPIMod.MOD_ID);
 
@@ -27,7 +27,7 @@ public class ApiConfig {
         private String apiName = "Anonymous API";
         private final Map<String, String> authParams = new HashMap<>();
         private final Map<String, String> apiParams = new HashMap<>();
-        private final List<String> enabledEvents = new ArrayList<>();
+        private final List<Class<? extends ApiEvent>> enabledEvents = new ArrayList<>();
         private ErrorHandler errorHandler = (error, context) -> LOGGER.error(error.getMessage());
 
         public Builder withApiName(@NotNull String apiName) {
@@ -45,7 +45,7 @@ public class ApiConfig {
             return this;
         }
 
-        public Builder enableEvent(String eventType) {
+        public Builder enableEvent(Class<? extends ApiEvent> eventType) {
             this.enabledEvents.add(eventType);
             return this;
         }
@@ -80,11 +80,11 @@ public class ApiConfig {
         return apiParams.get(key);
     }
 
-    public boolean isEventEnabled(String event) {
-        return enabledEvents.contains(event);
+    public boolean isEventEnabled(Class<? extends ApiEvent> eventType) {
+        return enabledEvents.contains(eventType);
     }
 
-    public List<String> getEnabledEvents() {
+    public List<Class<? extends ApiEvent>> getEnabledEvents() {
         return enabledEvents;
     }
 

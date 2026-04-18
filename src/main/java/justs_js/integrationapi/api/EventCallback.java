@@ -1,6 +1,6 @@
 package justs_js.integrationapi.api;
 
 @FunctionalInterface
-public interface EventCallback<T extends ApiEvent> {
-    void onEvent(T event);
+public interface EventCallback<E extends ApiEvent> {
+    void onEvent(E event);
 }
