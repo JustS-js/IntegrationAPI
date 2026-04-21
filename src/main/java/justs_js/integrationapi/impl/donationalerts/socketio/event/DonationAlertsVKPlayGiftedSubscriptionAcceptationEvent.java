@@ -23,7 +23,7 @@ public class DonationAlertsVKPlayGiftedSubscriptionAcceptationEvent extends Dona
         this.alertType = rawData.get("alert_type").getAsString();
         this.isShown = !rawData.get("is_shown").isJsonNull() && rawData.get("is_shown").getAsInt() == 1;
         this.billingSystem = rawData.get("billing_system").getAsString();
-        this.billingSystemType = rawData.get("billing_system_type").getAsString();
+        this.billingSystemType = rawData.get("billing_system_type").isJsonNull() ? null : rawData.get("billing_system_type").getAsString();
         this.username = rawData.get("username").getAsString();
         this.dateCreated = rawData.get("date_created").getAsString();
         this.isTestAlert = rawData.get("_is_test_alert").getAsBoolean();

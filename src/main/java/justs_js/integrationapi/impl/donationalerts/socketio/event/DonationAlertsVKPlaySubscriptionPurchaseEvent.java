@@ -24,7 +24,7 @@ public class DonationAlertsVKPlaySubscriptionPurchaseEvent extends DonationAlert
         this.alertType = rawData.get("alert_type").getAsString();
         this.isShown = !rawData.get("is_shown").isJsonNull() && rawData.get("is_shown").getAsInt() == 1;
         this.billingSystem = rawData.get("billing_system").getAsString();
-        this.billingSystemType = rawData.get("billing_system_type").getAsString();
+        this.billingSystemType = rawData.get("billing_system_type").isJsonNull() ? null : rawData.get("billing_system_type").getAsString();
         this.username = rawData.get("username").getAsString();
         this.amount = rawData.get("amount").getAsDouble();
         this.amountMain = rawData.get("amount_main").getAsDouble();
