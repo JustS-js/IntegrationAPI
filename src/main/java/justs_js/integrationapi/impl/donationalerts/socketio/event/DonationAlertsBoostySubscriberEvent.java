@@ -14,7 +14,6 @@ public class DonationAlertsBoostySubscriberEvent extends DonationAlertsEvent {
     private final String amountFormatted;
     private final double amountMain;
     private final String currency;
-    private final String header;
     private final String dateCreated;
     private final boolean isTestAlert;
 
@@ -35,11 +34,10 @@ public class DonationAlertsBoostySubscriberEvent extends DonationAlertsEvent {
         this.amountFormatted = rawData.get("amount_formatted").getAsString();
         this.amountMain = rawData.get("amount_main").getAsDouble();
         this.currency = rawData.get("currency").getAsString();
-        this.header = rawData.get("header").getAsString();
         this.dateCreated = rawData.get("date_created").getAsString();
         this.isTestAlert = rawData.get("_is_test_alert").getAsBoolean();
 
-        String additionalDataString = rawData.get("additional_data").getAsString();
+        String additionalDataString = rawData.get("additional_data").toString();
         JsonObject additionalData = JsonParser.parseString(additionalDataString).getAsJsonObject();
 
         this.randomness = additionalData.has("randomness") ? additionalData.get("randomness").getAsInt() : 0;
@@ -87,10 +85,6 @@ public class DonationAlertsBoostySubscriberEvent extends DonationAlertsEvent {
 
     public String getCurrency() {
         return currency;
-    }
-
-    public String getHeader() {
-        return header;
     }
 
     public String getDateCreated() {

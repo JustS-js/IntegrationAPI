@@ -10,7 +10,6 @@ public class DonationAlertsVKPlayGiftedSubscriptionAcceptationEvent extends Dona
     private final String billingSystem;
     private final String billingSystemType;
     private final String username;
-    private final String header;
     private final String dateCreated;
     private final boolean isTestAlert;
 
@@ -26,11 +25,10 @@ public class DonationAlertsVKPlayGiftedSubscriptionAcceptationEvent extends Dona
         this.billingSystem = rawData.get("billing_system").getAsString();
         this.billingSystemType = rawData.get("billing_system_type").getAsString();
         this.username = rawData.get("username").getAsString();
-        this.header = rawData.get("header").getAsString();
         this.dateCreated = rawData.get("date_created").getAsString();
         this.isTestAlert = rawData.get("_is_test_alert").getAsBoolean();
 
-        String additionalDataString = rawData.get("additional_data").getAsString();
+        String additionalDataString = rawData.get("additional_data").toString();
         JsonObject additionalData = JsonParser.parseString(additionalDataString).getAsJsonObject();
 
         this.randomness = additionalData.has("randomness") ? additionalData.get("randomness").getAsInt() : 0;
@@ -62,10 +60,6 @@ public class DonationAlertsVKPlayGiftedSubscriptionAcceptationEvent extends Dona
 
     public String getUsername() {
         return username;
-    }
-
-    public String getHeader() {
-        return header;
     }
 
     public String getDateCreated() {

@@ -80,8 +80,9 @@ public class DonationAlertsIntegrationImpl extends ApiIntegration<DonationAlerts
             // This event type was not registered
             return;
         }
-        if (!message.has("header")) {
-            // for some reason donations duplicate, and the second notifications does not have "header" field.
+        if ("1".equals(type) && message.has("header")) {
+            // for some reason donations duplicate if resent from panel,
+            // and the "fake" notification has "header" field.
             return;
         }
 

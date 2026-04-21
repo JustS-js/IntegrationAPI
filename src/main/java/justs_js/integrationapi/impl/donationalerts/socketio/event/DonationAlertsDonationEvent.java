@@ -15,7 +15,6 @@ public class DonationAlertsDonationEvent extends DonationAlertsEvent {
     private final double amountMain;
     private final String currency;
     private final String message;
-    private final String header;
     private final String dateCreated;
     private final String ttsUrl;
     private final boolean isTestAlert;
@@ -39,13 +38,12 @@ public class DonationAlertsDonationEvent extends DonationAlertsEvent {
         this.amountMain = rawData.get("amount_main").getAsDouble();
         this.currency = rawData.get("currency").getAsString();
         this.message = rawData.get("message").getAsString();
-        this.header = rawData.get("header").getAsString();
         this.dateCreated = rawData.get("date_created").getAsString();
         this.ttsUrl = rawData.get("tts_url").isJsonNull() ? null : rawData.get("tts_url").getAsString();
         this.isTestAlert = rawData.get("_is_test_alert").getAsBoolean();
         this.messageType = rawData.has("message_type") ? rawData.get("message_type").getAsString() : null;
 
-        String additionalDataString = rawData.get("additional_data").getAsString();
+        String additionalDataString = rawData.get("additional_data").toString();
         JsonObject additionalData = JsonParser.parseString(additionalDataString).getAsJsonObject();
 
         this.randomness = additionalData.has("randomness") ? additionalData.get("randomness").getAsInt() : 0;
@@ -94,10 +92,6 @@ public class DonationAlertsDonationEvent extends DonationAlertsEvent {
 
     public String getMessage() {
         return message;
-    }
-
-    public String getHeader() {
-        return header;
     }
 
     public String getDateCreated() {
