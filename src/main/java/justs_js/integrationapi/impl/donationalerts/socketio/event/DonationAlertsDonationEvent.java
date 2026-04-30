@@ -32,19 +32,20 @@ public class DonationAlertsDonationEvent extends DonationAlertsEvent {
         this.isShown = !rawData.get("is_shown").isJsonNull() && rawData.get("is_shown").getAsInt() == 1;
         this.billingSystem = rawData.get("billing_system").getAsString();
         this.billingSystemType = rawData.get("billing_system_type").isJsonNull() ? null : rawData.get("billing_system_type").getAsString();
-        this.username = rawData.get("username").getAsString();
+        this.username = rawData.get("username").isJsonNull() ? null : rawData.get("username").getAsString();
         this.amount = rawData.get("amount").getAsDouble();
         this.amountFormatted = rawData.get("amount_formatted").getAsString();
         this.amountMain = rawData.get("amount_main").getAsDouble();
         this.currency = rawData.get("currency").getAsString();
-        this.message = rawData.get("message").getAsString();
+        this.message = rawData.has("message") ? (rawData.get("message").isJsonNull() ? null : rawData.get("message").getAsString()) : null;
         this.dateCreated = rawData.get("date_created").getAsString();
         this.ttsUrl = rawData.get("tts_url").isJsonNull() ? null : rawData.get("tts_url").getAsString();
         this.isTestAlert = rawData.get("_is_test_alert").getAsBoolean();
         this.messageType = rawData.has("message_type") ? rawData.get("message_type").getAsString() : null;
 
-        String additionalDataString = rawData.get("additional_data").toString();
-        JsonObject additionalData = JsonParser.parseString(additionalDataString).getAsJsonObject();
+        JsonObject additionalData = rawData.get("additional_data").isJsonObject() ?
+                rawData.get("additional_data").getAsJsonObject() :
+                JsonParser.parseString(rawData.get("additional_data").getAsString()).getAsJsonObject();
 
         this.randomness = additionalData.has("randomness") ? additionalData.get("randomness").getAsInt() : 0;
         this.isCommissionCovered = additionalData.has("is_commission_covered") && additionalData.get("is_commission_covered").getAsInt() == 1;

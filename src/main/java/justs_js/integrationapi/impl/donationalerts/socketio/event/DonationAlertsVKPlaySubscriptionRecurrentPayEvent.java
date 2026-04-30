@@ -26,15 +26,16 @@ public class DonationAlertsVKPlaySubscriptionRecurrentPayEvent extends DonationA
         this.isShown = !rawData.get("is_shown").isJsonNull() && rawData.get("is_shown").getAsInt() == 1;
         this.billingSystem = rawData.get("billing_system").getAsString();
         this.billingSystemType = rawData.get("billing_system_type").isJsonNull() ? null : rawData.get("billing_system_type").getAsString();
-        this.username = rawData.get("username").getAsString();
+        this.username = rawData.get("username").isJsonNull() ? null : rawData.get("username").getAsString();
         this.amount = rawData.get("amount").getAsDouble();
         this.amountMain = rawData.get("amount_main").getAsDouble();
         this.currency = rawData.get("currency").getAsString();
         this.dateCreated = rawData.get("date_created").getAsString();
         this.isTestAlert = rawData.get("_is_test_alert").getAsBoolean();
 
-        String additionalDataString = rawData.get("additional_data").toString();
-        JsonObject additionalData = JsonParser.parseString(additionalDataString).getAsJsonObject();
+        JsonObject additionalData = rawData.get("additional_data").isJsonObject() ?
+                rawData.get("additional_data").getAsJsonObject() :
+                JsonParser.parseString(rawData.get("additional_data").getAsString()).getAsJsonObject();
 
         this.randomness = additionalData.has("randomness") ? additionalData.get("randomness").getAsInt() : 0;
         JsonObject eventData = additionalData.get("event_data").getAsJsonObject();

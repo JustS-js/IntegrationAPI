@@ -24,18 +24,19 @@ public class DonationAlertsVKPlayGiftedSubscriptionAcceptationEvent extends Dona
         this.isShown = !rawData.get("is_shown").isJsonNull() && rawData.get("is_shown").getAsInt() == 1;
         this.billingSystem = rawData.get("billing_system").getAsString();
         this.billingSystemType = rawData.get("billing_system_type").isJsonNull() ? null : rawData.get("billing_system_type").getAsString();
-        this.username = rawData.get("username").getAsString();
+        this.username = rawData.get("username").isJsonNull() ? null : rawData.get("username").getAsString();
         this.dateCreated = rawData.get("date_created").getAsString();
         this.isTestAlert = rawData.get("_is_test_alert").getAsBoolean();
 
-        String additionalDataString = rawData.get("additional_data").toString();
-        JsonObject additionalData = JsonParser.parseString(additionalDataString).getAsJsonObject();
+        JsonObject additionalData = rawData.get("additional_data").isJsonObject() ?
+                rawData.get("additional_data").getAsJsonObject() :
+                JsonParser.parseString(rawData.get("additional_data").getAsString()).getAsJsonObject();
 
         this.randomness = additionalData.has("randomness") ? additionalData.get("randomness").getAsInt() : 0;
         JsonObject eventData = additionalData.get("event_data").getAsJsonObject();
         this.levelName = eventData.get("level_name").getAsString();
         this.period = eventData.get("period").getAsInt();
-        this.sender = eventData.get("sender").getAsString();
+        this.sender = eventData.has("sender") ? (eventData.get("sender").isJsonNull() ? null : eventData.get("sender").getAsString()) : null;
     }
 
     public int getId() {
