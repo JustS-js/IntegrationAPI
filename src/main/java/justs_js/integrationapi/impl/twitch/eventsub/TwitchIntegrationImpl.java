@@ -4,7 +4,6 @@ import com.google.gson.*;
 import justs_js.integrationapi.api.ApiConfig;
 import justs_js.integrationapi.api.ApiIntegration;
 import justs_js.integrationapi.api.exception.InvalidTokenException;
-import justs_js.integrationapi.api.util.UrlBuilder;
 import justs_js.integrationapi.impl.twitch.eventsub.event.TwitchEvent;
 import justs_js.integrationapi.impl.twitch.eventsub.event.TwitchIntegrationRefreshTokenEvent;
 import org.java_websocket.client.WebSocketClient;
