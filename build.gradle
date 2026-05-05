@@ -1,7 +1,6 @@
 plugins {
 	id 'net.fabricmc.fabric-loom' version "${loom_version}"
 	id 'maven-publish'
-	id 'com.gradleup.shadow' version '9.3.0'
 }
 
 version = project.mod_version + "+" + project.minecraft_version
@@ -56,12 +55,22 @@ dependencies {
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
 	// web integration
-	compileOnly "io.socket:socket.io-client:${project.socketio_version}"
-	compileOnly "com.squareup.okhttp3:okhttp:${project.okhttp_version}"
-	compileOnly "org.java-websocket:Java-WebSocket:${project.websocket_version}"
-	shadowBundle "io.socket:socket.io-client:${project.socketio_version}"
-	shadowBundle "com.squareup.okhttp3:okhttp:${project.okhttp_version}"
-	shadowBundle "org.java-websocket:Java-WebSocket:${project.websocket_version}"
+	//compileOnly "io.socket:socket.io-client:${project.socketio_version}"
+	//compileOnly "com.squareup.okhttp3:okhttp:${project.okhttp_version}"
+	//compileOnly "org.java-websocket:Java-WebSocket:${project.websocket_version}"
+	//shadowBundle "io.socket:socket.io-client:${project.socketio_version}"
+	//shadowBundle "com.squareup.okhttp3:okhttp:${project.okhttp_version}"
+	//shadowBundle "org.java-websocket:Java-WebSocket:${project.websocket_version}"
+
+	implementation include("io.socket:socket.io-client:${project.socketio_version}")
+	implementation include("io.socket:engine.io-client:${project.socketio_version}")
+	implementation include("org.json:json:${project.json_version}")
+
+	implementation include("com.squareup.okhttp3:okhttp:${project.okhttp_version}")
+	implementation include("com.squareup.okio:okio:${project.okio_version}")
+	implementation include("org.jetbrains.kotlin:kotlin-stdlib:${project.kotlin_stdlib_version}")
+
+	implementation include("org.java-websocket:Java-WebSocket:${project.websocket_version}")
 }
 
 processResources {
@@ -74,14 +83,6 @@ processResources {
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = 25
-}
-
-shadowJar {
-	configurations = [project.configurations.shadowBundle]
-	archiveClassifier = 'dev-shadow'
-
-	relocate 'com.squareup.okhttp3', 'justs_js.integrationapi.shaded.okhttp3'
-	relocate 'org.java-websocket', 'justs_js.integrationapi.shaded.java-websocket'
 }
 
 java {
