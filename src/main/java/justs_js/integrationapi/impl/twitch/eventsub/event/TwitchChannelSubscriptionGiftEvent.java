@@ -19,9 +19,9 @@ public class TwitchChannelSubscriptionGiftEvent extends TwitchEvent {
         this.broadcasterUserId = rawData.get("broadcaster_user_id").getAsString();
         this.broadcasterUserLogin = rawData.get("broadcaster_user_login").getAsString();
         this.broadcasterUserName = rawData.get("broadcaster_user_name").getAsString();
-        this.userId = rawData.get("user_id").getAsString();
-        this.userLogin = rawData.get("user_login").getAsString();
-        this.userName = rawData.get("user_name").getAsString();
+        this.userId = rawData.get("user_id").isJsonNull() ? "274598607" : rawData.get("user_id").getAsString();
+        this.userLogin = rawData.get("user_login").isJsonNull() ? "AnAnonymousGifter" : rawData.get("user_login").getAsString();
+        this.userName = rawData.get("user_name").isJsonNull() ? "ananonymousgifter" :rawData.get("user_name").getAsString();
         this.total = rawData.get("total").getAsInt();
         this.tier = rawData.get("tier").getAsString();
         this.cumulativeTotal = rawData.get("cumulative_total").isJsonNull() ? -1 : rawData.get("cumulative_total").getAsInt();
